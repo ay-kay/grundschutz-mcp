@@ -20,7 +20,8 @@ import hmac
 import logging
 import sqlite3
 import threading
-from importlib.metadata import PackageNotFoundError, version as _pkg_version
+from importlib.metadata import PackageNotFoundError
+from importlib.metadata import version as _pkg_version
 from typing import Any
 
 import structlog
