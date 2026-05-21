@@ -165,7 +165,7 @@ make venv          # creates .venv, installs editable package + dev deps
 make build         # builds the SQLite DB (fast, no embeddings yet)
 make embed         # ~13 min on Apple Silicon, downloads bge-m3
 make serve         # starts the server on 127.0.0.1:8080
-make test          # runs pytest (79 tests)
+make test          # runs pytest (80 tests)
 ```
 
 > **Note on data**: this repository ships no BSI content - both
@@ -262,7 +262,7 @@ new short forms appear.
 
 ## Tests
 
-`make test` runs the full test suite (79 tests):
+`make test` runs the full test suite (80 tests):
 
 - XML importer (synthetic DocBook fragment + real-data smoketest)
 - KRT importer (synthetic openpyxl-built fixture + real-data smoketest)

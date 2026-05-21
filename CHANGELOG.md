@@ -15,7 +15,7 @@ follows [SemVer](https://semver.org/).
 - R1/R2/R3 implementation priority from the BSI modelling chapter.
 - Baustein-specific threat scenarios (701 items extracted from Gefährdungslage sub-sections).
 - Docker production deployment with Traefik integration, rate limiting, CPU/memory caps.
-- 79 automated tests including end-to-end MCP transport test.
+- 80 automated tests including end-to-end MCP transport test.
 - No BSI-derived content is shipped with the repository. The build pipeline
   fetches the DocBook XML via `make fetch-xml` and the Kreuzreferenztabelle
   XLSX via `make fetch-krt` directly from bsi.bund.de at setup time.
