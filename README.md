@@ -7,7 +7,7 @@ Anforderungen, elementare Gefährdungen, the BSI's R1/R2/R3 implementation
 order, and the per-Baustein threat scenarios — instead of grepping a
 800-page PDF.
 
-> **Status**: stable. Imports the full 2023 corpus with 100 % prose
+> **Status**: production-ready (beta). Imports the full 2023 corpus with 100 % prose
 > coverage, exposes 14 MCP tools over HTTP, hybrid keyword + semantic
 > search powered by `BAAI/bge-m3` (German-strong, 8k context, runs
 > locally — no cloud APIs).
