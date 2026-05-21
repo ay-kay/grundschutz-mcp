@@ -20,6 +20,7 @@ import hmac
 import logging
 import sqlite3
 import threading
+from importlib.metadata import PackageNotFoundError, version as _pkg_version
 from typing import Any
 
 import structlog
@@ -360,6 +361,15 @@ def build_app(cfg: ServerConfig | None = None) -> Starlette:
         "grundschutz-mcp",
         transport_security=_build_transport_security(cfg.allowed_hosts),
     )
+    # FastMCP picks up the mcp SDK's own version for serverInfo when we
+    # don't override it. Report our package version instead so clients see
+    # "grundschutz-mcp/0.1.0" rather than the bundled SDK release.
+    try:
+        mcp._mcp_server.version = _pkg_version("grundschutz-mcp")
+    except PackageNotFoundError:
+        # Editable installs in unusual layouts can miss the metadata; fall
+        # back to a static string rather than crashing startup.
+        mcp._mcp_server.version = "0.0.0+unknown"
     db_holder = _DbHolder(cfg)
     register_tools(mcp, db_holder)
 
