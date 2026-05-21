@@ -41,7 +41,7 @@ class ServerConfig:
             host=os.environ.get("GRUNDSCHUTZ_HOST", "127.0.0.1"),
             port=int(os.environ.get("GRUNDSCHUTZ_PORT", "8080")),
             auth_token=os.environ.get("GRUNDSCHUTZ_AUTH_TOKEN") or None,
-            log_level=os.environ.get("GRUNDSCHUTZ_LOG_LEVEL", "INFO"),
+            log_level=os.environ.get("GRUNDSCHUTZ_LOG_LEVEL", "WARNING"),
             semantic_search_enabled=(
                 os.environ.get("GRUNDSCHUTZ_SEMANTIC", "1") not in ("0", "false", "False")
             ),

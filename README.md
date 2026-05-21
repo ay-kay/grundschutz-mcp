@@ -8,7 +8,7 @@ order, and the per-Baustein threat scenarios — instead of grepping a
 800-page PDF.
 
 > **Status**: stable. Imports the full 2023 corpus with 100 % prose
-> coverage, exposes 16 MCP tools over HTTP, hybrid keyword + semantic
+> coverage, exposes 14 MCP tools over HTTP, hybrid keyword + semantic
 > search powered by `BAAI/bge-m3` (German-strong, 8k context, runs
 > locally — no cloud APIs).
 
@@ -30,7 +30,7 @@ order, and the per-Baustein threat scenarios — instead of grepping a
 
 ---
 
-## The 16 MCP tools
+## The 14 MCP tools
 
 | Tool | What it returns |
 |---|---|
@@ -269,7 +269,7 @@ new short forms appear.
 - Cross-reference extractor
 - FTS5 smoketests (Backup / Protokollierung / "Verschlusselung" with diacritic folding)
 - Embedding pipeline with a mocked SentenceTransformer
-- All 16 MCP tools
+- All 14 MCP tools
 - HTTP server (auth, healthcheck)
 - End-to-end through the streamable-http transport
 

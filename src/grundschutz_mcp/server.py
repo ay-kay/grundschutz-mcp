@@ -1,6 +1,6 @@
 """MCP server entrypoint.
 
-Exposes the 12 grundschutz tools over HTTP using the MCP SDK's
+Exposes the 14 grundschutz tools over HTTP using the MCP SDK's
 ``streamable-http`` transport. Authentication is a single shared bearer
 token loaded from the ``GRUNDSCHUTZ_AUTH_TOKEN`` env var; when unset, the
 server runs unauthenticated (useful for local development).
