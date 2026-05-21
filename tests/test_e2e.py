@@ -80,10 +80,10 @@ def server_url():
 def _call_tool(base_url: str, tool: str, arguments: dict) -> dict:
     """Speak the MCP streamable-http protocol just enough to call one tool."""
     from mcp import ClientSession
-    from mcp.client.streamable_http import streamablehttp_client
+    from mcp.client.streamable_http import streamable_http_client
 
     async def go() -> dict:
-        async with streamablehttp_client(f"{base_url}/mcp/") as (read, write, _):
+        async with streamable_http_client(f"{base_url}/mcp/") as (read, write, _):
             async with ClientSession(read, write) as session:
                 await session.initialize()
                 result = await session.call_tool(tool, arguments)
