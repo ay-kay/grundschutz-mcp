@@ -1,0 +1,64 @@
+# ============================================================================
+# grundschutz-mcp - base compose (standalone, no reverse proxy assumed)
+# ----------------------------------------------------------------------------
+# Out of the box this runs the MCP server on a host-bound port (defaults
+# to 127.0.0.1:8080). That covers two cases without any extra setup:
+#
+#   * Local development - curl/Claude Desktop bridge points at localhost.
+#   * Behind your own existing reverse proxy - any nginx/Caddy/HAProxy/
+#     Apache on the host can forward to 127.0.0.1:8080.
+#
+# For the common "I run Traefik already" pattern, layer the override:
+#
+#   docker compose -f compose.yml -f compose.traefik.yml up -d
+#
+# That removes the host-bound port and attaches the container to your
+# existing Traefik network with the right labels.
+#
+# Volumes:
+#   ./data       -> /app/db        - SQLite DB (~30 MB once built)
+#   ./hf-cache   -> /app/hf-cache  - Hugging Face model cache (~2.3 GB)
+#
+# Bring-up:
+#   1. cp .env.example .env  &&  edit as needed
+#   2. make fetch-xml fetch-krt   (one-time, pulls the BSI sources)
+#   3. docker compose up -d --build
+#      (first start downloads bge-m3 and embeds the catalog; ~15 min on
+#       Apple-Silicon-MPS, 60-120 min on x86 CPU)
+#   4. curl http://localhost:8080/health
+# ============================================================================
+
+services:
+  grundschutz-mcp:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: grundschutz-mcp:latest
+    container_name: grundschutz-mcp
+    restart: unless-stopped
+    environment:
+      GRUNDSCHUTZ_HOST: "0.0.0.0"
+      GRUNDSCHUTZ_PORT: "8080"
+      GRUNDSCHUTZ_AUTH_TOKEN: "${GRUNDSCHUTZ_AUTH_TOKEN:-}"
+      GRUNDSCHUTZ_LOG_LEVEL: "${GRUNDSCHUTZ_LOG_LEVEL:-WARNING}"
+      # MCP SDK enforces a Host-header allowlist (DNS-rebinding protection,
+      # CVE-2025-66416). Defaults cover the in-container healthcheck and
+      # typical localhost access. If you reach the server through a
+      # public hostname (reverse proxy, port-forward etc.) add it here,
+      # or set to "*" to disable the protection entirely when an upstream
+      # proxy already enforces strict host routing.
+      GRUNDSCHUTZ_ALLOWED_HOSTS: "${GRUNDSCHUTZ_ALLOWED_HOSTS:-localhost,localhost:*,127.0.0.1,127.0.0.1:*}"
+    ports:
+      # Bound to loopback by default so the service is safe to run on a
+      # shared host. Override BIND_HOST=0.0.0.0 in .env if you really
+      # want to expose 8080 to the world without a reverse proxy in
+      # front (consider setting GRUNDSCHUTZ_AUTH_TOKEN then).
+      - "${BIND_HOST:-127.0.0.1}:${HOST_PORT:-8080}:8080"
+    volumes:
+      - ./data:/app/db
+      - ./hf-cache:/app/hf-cache
+    deploy:
+      resources:
+        limits:
+          cpus: "${GRUNDSCHUTZ_CPU_LIMIT:-4.0}"
+          memory: "${GRUNDSCHUTZ_MEMORY_LIMIT:-4G}"

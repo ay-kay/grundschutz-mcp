@@ -1,0 +1,57 @@
+# ============================================================================
+# grundschutz-mcp - Traefik integration overlay
+# ----------------------------------------------------------------------------
+# Layer on top of compose.yml to plug the service into an existing Traefik
+# instance that terminates TLS for you. Assumes Traefik is already running
+# with a Docker provider and an HTTPS entrypoint.
+#
+# Usage:
+#   docker compose -f compose.yml -f compose.traefik.yml up -d
+#
+# Required .env values:
+#   PUBLIC_HOST=grundschutz.example.com
+#   PROXY_NETWORK=web              # name of your existing Traefik network
+#   TRAEFIK_ENTRYPOINT=websecure   # your Traefik HTTPS entrypoint
+#   TRAEFIK_CERTRESOLVER=letsencrypt
+#
+# The overlay:
+#   * Drops the host-bound port from the base file (Traefik talks to the
+#     container internally over the proxy network).
+#   * Adds Traefik labels: HTTPS routing for $PUBLIC_HOST + a per-IP
+#     rate-limit middleware (10 r/s avg, burst 30).
+#   * Joins the existing external proxy network instead of the default
+#     compose network.
+# ============================================================================
+
+services:
+  grundschutz-mcp:
+    # The base file binds 127.0.0.1:8080 to the host. Behind Traefik we
+    # don't want that - the container is reachable internally via the
+    # proxy network only.
+    ports: !reset []
+    networks:
+      - proxy
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.grundschutz.rule=Host(`${PUBLIC_HOST:?set PUBLIC_HOST in .env}`)"
+      - "traefik.http.routers.grundschutz.entrypoints=${TRAEFIK_ENTRYPOINT:-websecure}"
+      - "traefik.http.routers.grundschutz.tls.certresolver=${TRAEFIK_CERTRESOLVER:-letsencrypt}"
+      - "traefik.http.services.grundschutz.loadbalancer.server.port=8080"
+      # Append additional middlewares (e.g. shared securityheaders) by
+      # listing them comma-separated in TRAEFIK_MIDDLEWARES.
+      - "traefik.http.routers.grundschutz.middlewares=${TRAEFIK_MIDDLEWARES:-grundschutz-ratelimit}"
+      - "traefik.http.middlewares.grundschutz-ratelimit.ratelimit.average=10"
+      - "traefik.http.middlewares.grundschutz-ratelimit.ratelimit.burst=30"
+      - "traefik.http.middlewares.grundschutz-ratelimit.ratelimit.period=1s"
+    environment:
+      # Public host must be in the MCP DNS-rebinding allowlist for the
+      # request that reaches the container with Host: $PUBLIC_HOST to
+      # pass the SDK's protection check.
+      GRUNDSCHUTZ_ALLOWED_HOSTS: "${GRUNDSCHUTZ_ALLOWED_HOSTS:-${PUBLIC_HOST},${PUBLIC_HOST}:*,localhost,localhost:*,127.0.0.1,127.0.0.1:*}"
+
+networks:
+  # Logical name inside the compose stack; the actual Docker network is
+  # whatever your Traefik already publishes ("web" by convention).
+  proxy:
+    external: true
+    name: ${PROXY_NETWORK:-web}

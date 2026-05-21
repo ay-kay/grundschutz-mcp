@@ -1,0 +1,35 @@
+# Python
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+
+# Runtime data — committed file would leak server-specific contents
+.env
+.env.local
+.env.production
+.env.*.local
+
+# Built artifacts the user/CI produces locally, must not be committed
+db/
+data/
+hf-cache/
+
+# BSI source data: fetched via `make fetch-xml` / `make fetch-krt`,
+# never committed (BSI publishes updates and we don't want stale data
+# in git history).
+XML_Kompendium_*.xml
+krt*.xlsx
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor cruft
+.idea/
+.vscode/
+*.swp
+*~
