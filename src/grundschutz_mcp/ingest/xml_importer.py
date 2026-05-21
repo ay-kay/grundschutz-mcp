@@ -241,7 +241,7 @@ def _import_threats(
         m = RE_THREAT.match(title)
         if not m:
             continue
-        description = _collect_block_text(section, skip_titles=True)
+        description = _collect_block_text(section)
         conn.execute(
             "INSERT INTO threat (catalog_id, code, title, description) VALUES (?, ?, ?, ?)",
             (catalog_id, m.group("code"), m.group("title").strip(), description),
@@ -488,7 +488,7 @@ def _extract_module_description(module_section: ET.Element) -> str | None:
     for child in _child_sections(desc_section):
         sub_title = _section_title(child)
         if sub_title in MODULE_DESCRIPTION_TITLES:
-            text = _collect_block_text(child, skip_titles=True)
+            text = _collect_block_text(child)
             if text:
                 parts.append(text)
     return "\n\n".join(parts) if parts else None
@@ -545,7 +545,7 @@ def _extract_responsible_role(module_section: ET.Element) -> str | None:
 
 def _collect_requirement_prose(req_section: ET.Element) -> str | None:
     """Full prose of one requirement (every <para>/<itemizedlist>)."""
-    text = _collect_block_text(req_section, skip_titles=True)
+    text = _collect_block_text(req_section)
     return text or None
 
 
@@ -637,13 +637,16 @@ def _direct_block_text(section: ET.Element) -> str:
     return "\n\n".join(parts)
 
 
-def _collect_block_text(section: ET.Element, *, skip_titles: bool) -> str:
-    """Render every direct para/list/etc. child of ``section`` to plain text."""
+def _collect_block_text(section: ET.Element) -> str:
+    """Render every direct para/list/etc. child of ``section`` to plain text.
+
+    The section's own ``<title>`` and any nested ``<section>`` are skipped;
+    only the block-level prose (paragraphs, lists) directly under ``section``
+    is rendered.
+    """
     parts: list[str] = []
     for el in section:
         if el.tag == f"{{{DOCBOOK_NS}}}section":
-            continue
-        if skip_titles and el.tag == f"{{{DOCBOOK_NS}}}title":
             continue
         if el.tag == f"{{{DOCBOOK_NS}}}title":
             continue
