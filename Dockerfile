@@ -60,7 +60,11 @@ RUN chmod +x ./entrypoint.sh \
     && mkdir -p /app/db /app/hf-cache
 
 EXPOSE 8080
-HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
+# start-period covers the first-start bootstrap: HuggingFace model
+# download (~2 min) and catalog embedding (~15 min on Apple Silicon MPS,
+# up to ~120 min on x86 CPU). During this window, failures don't mark
+# the container unhealthy and `docker ps` shows "starting" instead.
+HEALTHCHECK --interval=30s --timeout=5s --start-period=120m --retries=3 \
     CMD curl -fsS http://localhost:8080/health || exit 1
 
 ENTRYPOINT ["./entrypoint.sh"]

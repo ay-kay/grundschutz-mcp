@@ -125,6 +125,10 @@ First start downloads `bge-m3` (~2.3 GB) and embeds the catalog
 Restarts skip both - the model lives in `./hf-cache/`, the DB in
 `./data/`.
 
+During this initial bootstrap `curl /health` returns no reply and
+`docker ps` shows the container as `starting` — that's expected.
+Follow progress with `docker compose logs -f grundschutz-mcp`.
+
 Want to expose on the network? Set `BIND_HOST=0.0.0.0` in `.env`
 (consider setting `GRUNDSCHUTZ_AUTH_TOKEN` then). Better still:
 front it with a real reverse proxy and keep `BIND_HOST` on
