@@ -17,7 +17,7 @@
 # Both produce gitignored files that the COPY directives below pick up.
 # ============================================================================
 
-FROM python:3.12-slim-bookworm AS builder
+FROM python:3.14-slim-bookworm AS builder
 
 ENV PYTHONUNBUFFERED=1 \
     PIP_NO_CACHE_DIR=1 \
@@ -36,7 +36,7 @@ RUN python -m venv /opt/venv \
     && /opt/venv/bin/pip install -e ".[server,embeddings]"
 
 # ----------------------------------------------------------------------------
-FROM python:3.12-slim-bookworm AS runtime
+FROM python:3.14-slim-bookworm AS runtime
 
 ENV PYTHONUNBUFFERED=1 \
     PATH="/opt/venv/bin:$PATH" \
