@@ -154,6 +154,16 @@ def test_list_threats(loaded_db):
     assert "G 0.14" in codes
 
 
+def test_list_threats_sorted_numerically(loaded_db):
+    # Insert a threat that sorts numerically before the existing ones but
+    # gets a higher rowid. A no-op ORDER BY (the old SUBSTR(code, 4) bug,
+    # which CASTs ".5" -> 0 for every row) would fall back to rowid order
+    # and place it last; the fix must return it first.
+    loaded_db.execute("INSERT INTO threat (catalog_id, code, title) VALUES (1, 'G 0.5', 'Test')")
+    codes = [t["code"] for t in threat_tools.list_threats(loaded_db)]
+    assert codes == ["G 0.5", "G 0.14", "G 0.39"]
+
+
 def test_get_threat(loaded_db):
     res = threat_tools.get_threat(loaded_db, "G 0.14")
     assert res["title"].startswith("Ausspähen")

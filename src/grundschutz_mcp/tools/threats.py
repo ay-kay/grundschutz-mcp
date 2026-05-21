@@ -15,7 +15,10 @@ def list_threats(conn: sqlite3.Connection) -> list[dict[str, str]]:
         for r in conn.execute(
             "SELECT code, title FROM threat "
             # Numeric sort on the trailing number for natural ordering.
-            "ORDER BY CAST(SUBSTR(code, 4) AS INTEGER)"
+            # Codes look like "G 0.14"; the number starts right after the dot,
+            # so anchor on INSTR rather than a fixed offset (SUBSTR(code, 4)
+            # would yield ".14", which CASTs to 0 for every row).
+            "ORDER BY CAST(SUBSTR(code, INSTR(code, '.') + 1) AS INTEGER)"
         )
     ]
 
@@ -52,7 +55,9 @@ def get_threats_for_requirement(
         "FROM requirement_threat rt "
         "JOIN threat t ON t.id = rt.threat_id "
         "WHERE rt.requirement_id = ? "
-        "ORDER BY CAST(SUBSTR(t.code, 4) AS INTEGER)",
+        # Numeric sort on the trailing number (see list_threats for why
+        # we anchor on the dot instead of a fixed SUBSTR offset).
+        "ORDER BY CAST(SUBSTR(t.code, INSTR(t.code, '.') + 1) AS INTEGER)",
         (req["id"],),
     ).fetchall()
 
