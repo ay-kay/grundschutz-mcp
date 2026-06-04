@@ -21,17 +21,29 @@ def list_modules(
     layer: str | None = None,
     search: str | None = None,
     priority: str | None = None,
-    limit: int = 50,
-) -> list[dict[str, Any]]:
+    limit: int = 200,
+) -> dict[str, Any]:
     """Return modules, optionally filtered by layer code, search term, or
     implementation priority class (R1 / R2 / R3).
 
     ``search`` is matched against module code and title via FTS5.
     ``priority`` filters by ``module.priority_class`` and accepts ``R1``,
     ``R2`` or ``R3``.
+
+    The default ``limit`` (200) covers the whole catalogue (111 modules), so
+    by default the list is complete. The response is an envelope:
+
+        {"modules": [...], "total_count": N, "returned_count": M,
+         "truncated": bool}
+
+    where ``total_count`` is how many modules match the filters in total and
+    ``truncated`` is true when ``limit`` cut the list short - so a caller can
+    tell a complete answer from a capped one instead of guessing.
     """
     if priority is not None and priority not in ("R1", "R2", "R3"):
         raise ValueError(f"priority must be R1, R2 or R3, got {priority!r}")
+    if limit < 1:
+        raise ValueError(f"limit must be >= 1, got {limit!r}")
     if search:
         sql = (
             "SELECT m.code AS code, m.title AS title, "
@@ -49,8 +61,6 @@ def list_modules(
         if priority:
             sql += "  AND m.priority_class = ? "
             args.append(priority)
-        sql += "LIMIT ?"
-        args.append(limit)
     else:
         sql = (
             "SELECT m.code AS code, m.title AS title, "
@@ -68,9 +78,17 @@ def list_modules(
             args.append(priority)
         if where:
             sql += "WHERE " + " AND ".join(where) + " "
-        sql += "ORDER BY m.code LIMIT ?"
-        args.append(limit)
-    return [dict(r) for r in conn.execute(sql, args)]
+        sql += "ORDER BY m.code"
+    # The catalogue is tiny (111 modules), so fetching every match and
+    # slicing in Python is cheap and lets us report total_count honestly.
+    rows = [dict(r) for r in conn.execute(sql, args)]
+    modules = rows[:limit]
+    return {
+        "modules": modules,
+        "total_count": len(rows),
+        "returned_count": len(modules),
+        "truncated": len(rows) > len(modules),
+    }
 
 
 def get_module(conn: sqlite3.Connection, code: str) -> dict[str, Any]:

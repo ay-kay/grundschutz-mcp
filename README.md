@@ -35,7 +35,7 @@ order, and the per-Baustein threat scenarios — instead of grepping a
 | Tool | What it returns |
 |---|---|
 | `list_layers()` | All 10 BSI layers (APP, CON, DER, IND, INF, ISMS, NET, OPS, ORP, SYS). |
-| `list_modules(layer?, search?, priority?, limit?)` | Bausteine, filterable by layer, free-text and R1/R2/R3 priority. |
+| `list_modules(layer?, search?, priority?, limit?)` | Bausteine, filterable by layer, free-text and R1/R2/R3 priority. Returns the whole catalogue by default in an envelope with `total_count`/`truncated`, so a capped list is never mistaken for a complete one. |
 | `get_module(code)` | One Baustein incl. description, threat situation, **specific threats**, the requirements grouped by level. |
 | `list_module_threats(code)` | Just the baustein-specific threat scenarios (e.g. "Ransomware", "Fehlende Wiederherstellungstests" for CON.3). |
 | `list_requirements(module_code, level?, include_deprecated?)` | Requirements of one Baustein. |

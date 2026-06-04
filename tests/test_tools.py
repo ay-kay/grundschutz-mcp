@@ -37,18 +37,21 @@ def test_list_layers(loaded_db):
 
 def test_list_modules_unfiltered(loaded_db):
     res = mod_tools.list_modules(loaded_db)
-    codes = [m["code"] for m in res]
+    codes = [m["code"] for m in res["modules"]]
     assert "APP.1.1" in codes and "ORP.1" in codes
+    # Default call returns the whole catalogue: not truncated, counts agree.
+    assert res["truncated"] is False
+    assert res["total_count"] == res["returned_count"] == len(codes)
 
 
 def test_list_modules_by_layer(loaded_db):
     res = mod_tools.list_modules(loaded_db, layer="APP")
-    assert all(m["layer_code"] == "APP" for m in res)
+    assert all(m["layer_code"] == "APP" for m in res["modules"])
 
 
 def test_list_modules_search(loaded_db):
     res = mod_tools.list_modules(loaded_db, search="Office")
-    assert any(m["code"] == "APP.1.1" for m in res)
+    assert any(m["code"] == "APP.1.1" for m in res["modules"])
 
 
 def test_list_modules_filter_by_priority(loaded_db):
@@ -56,16 +59,28 @@ def test_list_modules_filter_by_priority(loaded_db):
     loaded_db.execute("UPDATE module SET priority_class = 'R1' WHERE code = 'APP.1.1'")
     loaded_db.execute("UPDATE module SET priority_class = 'R3' WHERE code = 'ORP.1'")
     r1 = mod_tools.list_modules(loaded_db, priority="R1")
-    codes = [m["code"] for m in r1]
-    assert codes == ["APP.1.1"]
+    assert [m["code"] for m in r1["modules"]] == ["APP.1.1"]
     r3 = mod_tools.list_modules(loaded_db, priority="R3")
-    codes = [m["code"] for m in r3]
-    assert codes == ["ORP.1"]
+    assert [m["code"] for m in r3["modules"]] == ["ORP.1"]
+
+
+def test_list_modules_truncation_is_signalled(loaded_db):
+    # The fixture has 2 modules. limit=1 must cut the list AND say so, so a
+    # caller never mistakes a capped slice for the complete catalogue.
+    res = mod_tools.list_modules(loaded_db, limit=1)
+    assert res["returned_count"] == 1
+    assert res["total_count"] == 2
+    assert res["truncated"] is True
 
 
 def test_list_modules_invalid_priority(loaded_db):
     with pytest.raises(ValueError, match="priority"):
         mod_tools.list_modules(loaded_db, priority="R9")
+
+
+def test_list_modules_invalid_limit(loaded_db):
+    with pytest.raises(ValueError, match="limit"):
+        mod_tools.list_modules(loaded_db, limit=0)
 
 
 def test_get_module(loaded_db):

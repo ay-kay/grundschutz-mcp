@@ -149,13 +149,20 @@ def register_tools(mcp: FastMCP, db: _DbHolder) -> None:
         layer: str | None = None,
         search: str | None = None,
         priority: str | None = None,
-        limit: int = 50,
-    ) -> list[dict[str, Any]]:
-        """List Bausteine, optionally filtered.
+        limit: int = 200,
+    ) -> dict[str, Any]:
+        """List Bausteine, optionally filtered. Returns the WHOLE catalogue by default.
 
-        ``priority`` accepts ``R1`` (highest, e.g. ISMS.1 and the ORP layer),
-        ``R2`` or ``R3`` and returns only Bausteine in that implementation-
-        priority class as defined by Kapitel 2.2 of the BSI Kompendium.
+        To get every Baustein of one implementation-priority class, pass
+        ``priority`` = ``R1`` (highest; the 15 Bausteine BSI says to do first,
+        e.g. ISMS.1, the four ORP.* and six OPS.1.1.* modules, CON.3, CON.6,
+        DER.1, DER.2.1), ``R2`` or ``R3``. Do NOT list all modules and count
+        by eye - use the ``priority`` filter.
+
+        The response is an envelope ``{"modules": [...], "total_count": N,
+        "returned_count": M, "truncated": bool}``. ``truncated`` is true only
+        when ``limit`` cut the result short; the default limit (200) covers the
+        full 111-module catalogue, so a default call is always complete.
         """
         return mod_tools.list_modules(
             db.get(),
