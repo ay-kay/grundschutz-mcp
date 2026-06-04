@@ -39,11 +39,11 @@ order, and the per-Baustein threat scenarios — instead of grepping a
 | `get_module(code)` | One Baustein incl. description, threat situation, **specific threats**, the requirements grouped by level. |
 | `list_module_threats(code)` | Just the baustein-specific threat scenarios (e.g. "Ransomware", "Fehlende Wiederherstellungstests" for CON.3). |
 | `list_requirements(module_code, level?, include_deprecated?)` | Requirements of one Baustein. |
-| `get_requirement(code)` | One requirement with full prose, roles, module context. |
+| `get_requirement(code)` | One requirement with full prose, roles, module context, and its C/I/A protection goals (Grundwerte; empty when BSI assigned none). |
 | `get_cross_references(req_code)` | Codes cited from a requirement's prose. |
 | `list_threats()` | All 47 elementare Gefährdungen. |
 | `get_threat(code)` | One Gefährdung with full description. |
-| `get_threats_for_requirement(req_code)` | Threats addressed by a requirement, with per-link protection goals (C/I/A). |
+| `get_threats_for_requirement(req_code)` | Threats addressed by a requirement, plus the requirement's C/I/A protection goals (reported once; the BSI assigns these per requirement, not per threat). |
 | `get_requirements_for_threat(threat_code)` | Requirements that address a given threat. |
 | `search(query, entity_types?, limit?)` | **Default search.** Hybrid keyword + semantic via Reciprocal Rank Fusion. |
 | `search_keyword(query, …)` | Pure FTS5; use when you want exact-term matching without semantic generalisation. |

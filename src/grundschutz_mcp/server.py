@@ -209,7 +209,13 @@ def register_tools(mcp: FastMCP, db: _DbHolder) -> None:
 
     @mcp.tool()
     def get_requirement(code: str) -> dict[str, Any]:
-        """Return one requirement with full prose, module context, and assigned roles."""
+        """Return one requirement with full prose, module context, assigned roles, and protection goals.
+
+        ``protection_goals`` lists the C/I/A Grundwerte the BSI
+        Kreuzreferenztabelle assigns to this requirement. BSI fills this
+        only for a subset of requirements, so an empty list means BSI
+        assigned none - not that data is missing.
+        """
         try:
             return req_tools.get_requirement(db.get(), code)
         except CodeNotFoundError as exc:
@@ -240,7 +246,12 @@ def register_tools(mcp: FastMCP, db: _DbHolder) -> None:
 
     @mcp.tool()
     def get_threats_for_requirement(req_code: str) -> dict[str, Any]:
-        """Return the threats a requirement addresses, with per-link protection goals (C/I/A)."""
+        """Return the threats a requirement addresses, plus the requirement's protection goals.
+
+        ``protection_goals`` (C/I/A) belongs to the requirement as a whole
+        (BSI Kreuzreferenztabelle Grundwerte), not to individual threats, so
+        it is reported once at the top level. Empty means BSI assigned none.
+        """
         try:
             return threat_tools.get_threats_for_requirement(db.get(), req_code)
         except CodeNotFoundError as exc:

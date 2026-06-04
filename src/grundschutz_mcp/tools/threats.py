@@ -6,6 +6,7 @@ import sqlite3
 from typing import Any
 
 from ._common import CodeNotFoundError, fuzzy_suggest
+from .requirements import protection_goals_for_requirement
 
 
 def list_threats(conn: sqlite3.Connection) -> list[dict[str, str]]:
@@ -42,7 +43,15 @@ def get_threats_for_requirement(
     conn: sqlite3.Connection,
     req_code: str,
 ) -> dict[str, Any]:
-    """Return the threats a requirement addresses, plus per-link protection goals."""
+    """Return the threats a requirement addresses, plus its protection goals.
+
+    ``protection_goals`` (C/I/A) is an attribute of the *requirement* as a
+    whole, taken from the BSI Kreuzreferenztabelle's Grundwerte column - not
+    of each individual threat link. The BSI assigns it to only a subset of
+    requirements, so an empty list means BSI assigned none, not that data is
+    missing. It is reported once, at the top level, rather than repeated on
+    every threat.
+    """
     req = conn.execute(
         "SELECT id FROM requirement WHERE code = ?",
         (req_code,),
@@ -50,30 +59,25 @@ def get_threats_for_requirement(
     if req is None:
         raise CodeNotFoundError(req_code, fuzzy_suggest(conn, "requirement", req_code))
 
-    rows = conn.execute(
-        "SELECT t.code AS code, t.title AS title, rt.id AS link_id "
-        "FROM requirement_threat rt "
-        "JOIN threat t ON t.id = rt.threat_id "
-        "WHERE rt.requirement_id = ? "
-        # Numeric sort on the trailing number (see list_threats for why
-        # we anchor on the dot instead of a fixed SUBSTR offset).
-        "ORDER BY CAST(SUBSTR(t.code, INSTR(t.code, '.') + 1) AS INTEGER)",
-        (req["id"],),
-    ).fetchall()
+    threats = [
+        {"code": r["code"], "title": r["title"]}
+        for r in conn.execute(
+            "SELECT t.code AS code, t.title AS title "
+            "FROM requirement_threat rt "
+            "JOIN threat t ON t.id = rt.threat_id "
+            "WHERE rt.requirement_id = ? "
+            # Numeric sort on the trailing number (see list_threats for why
+            # we anchor on the dot instead of a fixed SUBSTR offset).
+            "ORDER BY CAST(SUBSTR(t.code, INSTR(t.code, '.') + 1) AS INTEGER)",
+            (req["id"],),
+        )
+    ]
 
-    out: list[dict[str, Any]] = []
-    for r in rows:
-        goals = [
-            g["goal"]
-            for g in conn.execute(
-                "SELECT goal FROM requirement_threat_goal "
-                "WHERE requirement_threat_id = ? ORDER BY goal",
-                (r["link_id"],),
-            )
-        ]
-        out.append({"code": r["code"], "title": r["title"], "protection_goals": goals})
-
-    return {"requirement_code": req_code, "threats": out}
+    return {
+        "requirement_code": req_code,
+        "protection_goals": protection_goals_for_requirement(conn, req["id"]),
+        "threats": threats,
+    }
 
 
 def get_requirements_for_threat(

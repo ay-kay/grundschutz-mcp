@@ -78,7 +78,36 @@ def get_requirement(conn: sqlite3.Connection, code: str) -> dict[str, Any]:
         "module_title": row["module_title"],
         "layer_code": row["layer_code"],
         "roles": roles,
+        "protection_goals": protection_goals_for_requirement(conn, row["id"]),
     }
+
+
+def protection_goals_for_requirement(
+    conn: sqlite3.Connection,
+    requirement_id: int,
+) -> list[str]:
+    """Return the requirement's protection goals (C/I/A) from the BSI KRT.
+
+    These are the Grundwerte the BSI Kreuzreferenztabelle assigns to the
+    requirement as a whole (column "CIA"). The BSI fills this only for a
+    subset of requirements, so an empty list means BSI assigned no
+    protection goals to this requirement - not that data is missing.
+
+    Returned in canonical C, I, A order (Vertraulichkeit, Integrität,
+    Verfügbarkeit).
+    """
+    return [
+        r["goal"]
+        for r in conn.execute(
+            "SELECT DISTINCT g.goal AS goal "
+            "FROM requirement_threat rt "
+            "JOIN requirement_threat_goal g ON g.requirement_threat_id = rt.id "
+            "WHERE rt.requirement_id = ? "
+            "ORDER BY CASE g.goal "
+            "  WHEN 'C' THEN 0 WHEN 'I' THEN 1 WHEN 'A' THEN 2 ELSE 3 END",
+            (requirement_id,),
+        )
+    ]
 
 
 def get_cross_references(

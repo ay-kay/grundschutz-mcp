@@ -134,6 +134,17 @@ def test_get_requirement(loaded_db):
     assert res["module_code"] == "APP.1.1"
     assert "IT-Betrieb" in res["roles"]
     assert "Benutzende" in res["roles"]
+    # APP.1.1.A2's threat link carries no Grundwerte in the fixture -> empty
+    # means "BSI assigned none", not "missing".
+    assert res["protection_goals"] == []
+
+
+def test_get_requirement_protection_goals_canonical_order(loaded_db):
+    # ORP.1.A1's link to G 0.14 has goals C and I -> reported on the
+    # requirement in canonical C, I, A order (not the C/A/I alphabetical
+    # order the threat-link table would otherwise yield).
+    res = req_tools.get_requirement(loaded_db, "ORP.1.A1")
+    assert res["protection_goals"] == ["C", "I"]
 
 
 def test_get_cross_references(loaded_db):
@@ -172,12 +183,13 @@ def test_get_threat(loaded_db):
 
 def test_get_threats_for_requirement(loaded_db):
     res = threat_tools.get_threats_for_requirement(loaded_db, "ORP.1.A1")
-    threats = res["threats"]
-    # The fixture links ORP.1.A1 to G 0.14 with goals [C, I].
-    codes = [t["code"] for t in threats]
+    # protection_goals is reported once at the top level (requirement-wide),
+    # not repeated per threat.
+    assert res["protection_goals"] == ["C", "I"]
+    codes = [t["code"] for t in res["threats"]]
     assert "G 0.14" in codes
-    g14 = next(t for t in threats if t["code"] == "G 0.14")
-    assert set(g14["protection_goals"]) == {"C", "I"}
+    # Threat entries carry no per-link goals anymore.
+    assert all("protection_goals" not in t for t in res["threats"])
 
 
 def test_get_requirements_for_threat(loaded_db):
