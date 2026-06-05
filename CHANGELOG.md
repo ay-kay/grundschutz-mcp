@@ -4,6 +4,17 @@ All notable changes are documented here. Format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versioning
 follows [SemVer](https://semver.org/).
 
+## [0.2.1] - 2026-06-05
+
+### Added
+- Traefik overlay sets security headers (HSTS, `X-Content-Type-Options:
+  nosniff`, `Referrer-Policy: no-referrer`) and strips the backend
+  `Server` header.
+
+### Fixed
+- `__version__` is derived from the package metadata, so it can no longer
+  drift from `pyproject.toml`.
+
 ## [0.2.0] - 2026-06-05
 
 ### Changed
