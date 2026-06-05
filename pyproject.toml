@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "grundschutz-mcp"
-version = "0.1.0"
+version = "0.2.0"
 description = "MCP server providing structured access to the BSI IT-Grundschutz-Kompendium"
 readme = "README.md"
 license = { file = "LICENSE" }

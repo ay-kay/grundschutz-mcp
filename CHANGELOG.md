@@ -4,7 +4,26 @@ All notable changes are documented here. Format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versioning
 follows [SemVer](https://semver.org/).
 
-## [Unreleased]
+## [0.2.0] - 2026-06-05
+
+### Changed
+- `get_requirement` now also returns the requirement's C/I/A protection
+  goals (`protection_goals`) from the BSI Kreuzreferenztabelle Grundwerte.
+  An empty list means BSI assigned none, not that data is missing.
+- `get_threats_for_requirement` reports `protection_goals` once at the top
+  level — the goals belong to the requirement as a whole, not to individual
+  threats. Threat entries are now just `code` + `title`.
+- `list_modules` returns the whole 111-module catalogue by default
+  (default limit 50 → 200), wrapped in an envelope
+  `{modules, total_count, returned_count, truncated}`.
+
+### Fixed
+- `list_modules` no longer truncates silently. A capped result is flagged
+  via `truncated` / `total_count`, so a model can no longer mistake the
+  first 50 of 111 modules for the full list — which produced confidently
+  wrong answers such as "only 4 R1 modules" instead of the correct 15.
+
+## [0.1.0] - 2026-06-04
 
 ### Added
 - Initial open-source release.

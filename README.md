@@ -14,6 +14,37 @@ order, and the per-Baustein threat scenarios — instead of grepping a
 
 ---
 
+## Try it live (no install)
+
+A public demo instance runs at:
+
+```
+https://grundschutz-mcp.kurtz.to/mcp
+```
+
+Point any MCP client at it. Clients with native remote-MCP support
+(Mistral Le Chat, LM Studio ≥ 0.3.17) take the URL directly as a custom
+MCP connector — no authentication. For Claude Desktop, use the
+`mcp-remote` bridge:
+
+```json
+{
+  "mcpServers": {
+    "grundschutz": {
+      "command": "npx",
+      "args": ["-y", "mcp-remote", "https://grundschutz-mcp.kurtz.to/mcp"]
+    }
+  }
+}
+```
+
+Hosted in Germany (Hetzner). No request logs, no tracking, no sign-up; the
+server only ever returns public BSI content, so nothing you ask is stored.
+**It's a hobby instance with no uptime guarantee — for anything serious,
+self-host (see below).**
+
+---
+
 ## What's in it
 
 | Entity | Count | Source |
@@ -51,6 +82,35 @@ order, and the per-Baustein threat scenarios — instead of grepping a
 
 Unknown codes return a structured error with fuzzy-match suggestions
 instead of throwing.
+
+---
+
+## Example questions
+
+Ask these in any MCP-enabled chat client connected to the server (German,
+since the Kompendium is German):
+
+**Semantic search** — finds the right Bausteine even when the word isn't in the text:
+- *Welche Bausteine im IT-Grundschutz helfen mir gegen Ransomware?*
+
+**Concrete requirements:**
+- *Was fordert CON.3 im IT-Grundschutz als Basis-Anforderungen?*
+- *Zeig mir den vollständigen Text von CON.3.A5.*
+- *Welche Rolle ist laut Grundschutz für CON.3.A13 zuständig, und ist es Basis, Standard oder Hoch?*
+
+**Threats & cross-reference table (C/I/A):**
+- *Welche Gefährdungen adressiert CON.3.A13, und welche Schutzziele?*
+- *Liste alle elementaren Gefährdungen.*
+- *Wie lautet die Gefährdung G 0.12?*
+- *Welche Anforderungen schützen gegen G 0.12?*
+
+**Implementation priorities (R1/R2/R3):**
+- *Welche R1-Bausteine kommen aus der OPS-Schicht?*
+
+Tip: for the cleanest demo, ask one question per fresh chat and tell the
+model to use the tools (e.g. "Nutze die verfügbaren Tools."). Smaller
+local models occasionally answer from memory instead of calling the
+server — the visible tool call in the response is your proof it didn't.
 
 ---
 
