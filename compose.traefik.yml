@@ -39,10 +39,17 @@ services:
       - "traefik.http.services.grundschutz.loadbalancer.server.port=8080"
       # Append additional middlewares (e.g. shared securityheaders) by
       # listing them comma-separated in TRAEFIK_MIDDLEWARES.
-      - "traefik.http.routers.grundschutz.middlewares=${TRAEFIK_MIDDLEWARES:-grundschutz-ratelimit}"
+      - "traefik.http.routers.grundschutz.middlewares=${TRAEFIK_MIDDLEWARES:-grundschutz-ratelimit,grundschutz-headers}"
       - "traefik.http.middlewares.grundschutz-ratelimit.ratelimit.average=10"
       - "traefik.http.middlewares.grundschutz-ratelimit.ratelimit.burst=30"
       - "traefik.http.middlewares.grundschutz-ratelimit.ratelimit.period=1s"
+      # Security headers: force-HTTPS hint (HSTS), no MIME sniffing, no
+      # referrer leakage, and strip the backend's "Server: uvicorn" header.
+      - "traefik.http.middlewares.grundschutz-headers.headers.stsSeconds=31536000"
+      - "traefik.http.middlewares.grundschutz-headers.headers.stsIncludeSubdomains=true"
+      - "traefik.http.middlewares.grundschutz-headers.headers.contentTypeNosniff=true"
+      - "traefik.http.middlewares.grundschutz-headers.headers.referrerPolicy=no-referrer"
+      - "traefik.http.middlewares.grundschutz-headers.headers.customResponseHeaders.Server="
     environment:
       # Public host must be in the MCP DNS-rebinding allowlist for the
       # request that reaches the container with Host: $PUBLIC_HOST to
