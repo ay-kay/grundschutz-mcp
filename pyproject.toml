@@ -22,7 +22,7 @@ classifiers = [
 ]
 dependencies = [
     "structlog>=24.0",
-    "openpyxl>=3.1",   # KRT XLSX parsing
+    "openpyxl>=3.1.5",   # KRT XLSX parsing
 ]
 
 [project.optional-dependencies]
